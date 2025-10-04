@@ -349,6 +349,6 @@ for iter in range(5000):
 
     # if count % 1000 == 0:
     df = pd.DataFrame(data)
-    df.to_csv("lift_primitive_data.csv")
+    df.to_csv("peg_in_hole.csv")
 
 p.disconnect()
