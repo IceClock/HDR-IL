@@ -63,8 +63,8 @@ def getPredictedGripperPositions():
 
     for i in range(70):
 
-        gripperPosition1 = p.calculateInverseKinematics(botId, 29, [data.iloc[i, 2], data.iloc[i, 3], data.iloc[i, 4]], maxNumIterations=1000)
-        gripperPosition2 = p.calculateInverseKinematics(botId, 52, [data.iloc[i, 5], data.iloc[i, 6], data.iloc[i, 7]], maxNumIterations=1000)
+        gripperPosition1 = p.calculateInverseKinematics(botId, 28, [data.iloc[i, 2], data.iloc[i, 3], data.iloc[i, 4]], maxNumIterations=1000)
+        gripperPosition2 = p.calculateInverseKinematics(botId, 51, [data.iloc[i, 5], data.iloc[i, 6], data.iloc[i, 7]], maxNumIterations=1000)
 
         p.setJointMotorControlArray(botId,
                                     jointIndices=revoluteJoints[0:10],
@@ -323,7 +323,7 @@ def visualize(data):
 #The following script visualizes the output predictions of our model on the table lift and place task.
 def main():
 
-    data = pd.read_csv('projection a success v5 ODE.csv')
+    data = pd.read_csv('lift_and_place_table.csv')
 
     label = 0
 

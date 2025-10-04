@@ -119,7 +119,7 @@ class BaxterDataset(Dataset):
     def __init__(self):
 
         #filePathTrain = '../Simulation Data/Replay_VLOOKUP.csv'
-        filePathTrain = '../Simulation Data/primitive data filtering 625 L.csv'
+        filePathTrain = '../Simulation Data/peg_in_hole.csv'
 
         self.coordinates = pd.read_csv(filePathTrain)
         self.coordinates['Prim'] = self.coordinates.apply(lambda row: label_primitive(row), axis = 1)

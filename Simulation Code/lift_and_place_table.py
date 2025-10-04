@@ -2639,6 +2639,8 @@ for iter in range(5000):
     p.removeBody(blockId)
 
 df = pd.DataFrame(data)
-df.to_csv("lift_primitive_data.csv")
+
+
+df.to_csv("lift_and_place_table.csv")
 
 p.disconnect()

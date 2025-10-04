@@ -348,7 +348,7 @@ def visualize(data):
 def main():
 
     # data = pd.read_csv('projection a box.csv')
-    data = pd.read_csv("lift_primitive_data.csv")
+    data = pd.read_csv("peg_in_hole.csv")
 
     # data = data[["right_gripper_pole_x_1", "right_gripper_pole_y_1", "right_gripper_pole_z_1",
     #         "right_gripper_pole_q_11", "right_gripper_pole_q_12", "right_gripper_pole_q_13", "right_gripper_pole_q_14",
