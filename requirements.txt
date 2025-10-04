@@ -4,4 +4,6 @@ networkx
 numpy
 pandas
 pybullet
-torch
+torch==2.2.1
+torchdata==0.7.1
+gymnasium
