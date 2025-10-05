@@ -26,7 +26,7 @@ params = {
 }
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 train_set = utils.BaxterDataset()
 
@@ -71,13 +71,15 @@ headers = utils.outputHeaders()
 
 
 """Initialize the graph"""
-g2 = dgl.DGLGraph().to(device)
 nodes = input_size
-g2.add_nodes(nodes)
-# A couple edges one-by-one
-for i in range(0, nodes):
-    for j in range(0, nodes):
-        g2.add_edge(i, j)
+src = []
+dst = []
+for i in range(nodes):
+    for j in range(nodes):
+        src.append(i)
+        dst.append(j)
+g2 = dgl.graph((src, dst), num_nodes=nodes).to(device)
+
 
 
 
@@ -141,9 +143,9 @@ for key in models.keys():
 
 
 
-if (params["load_model"] == True):
+# if (params["load_model"] == True):
 
-    graspmodel.load_state_dict(torch.load(path1))
+    # graspmodel.load_state_dict(torch.load(path1))
 
 
 if (params["train_model"] == True):
@@ -151,15 +153,25 @@ if (params["train_model"] == True):
 
         #s = random.randint(0, runs) * runsize
 
-        s = random.randint(0, params['runs']) * params['runsize']
-
-        for i in range(0, params["runs"]*6):
-
+        max_index = len(train_set.labels) - 1
+        runsize = params['runsize']
+        max_run = max_index // runsize  # Safest number of full runs
+        
+        # Initial random index
+        s = random.randint(0, max_run) * runsize
+        
+        for i in range(0, max_run * 6):  # Adjust loop to match valid range
             if i % 6 == 0:
-                s = random.randint(0, params['runs'] - 1) * params['runsize']
+                s = random.randint(0, max_run) * runsize
+        
             print("epoch", epoch_idx, "i", i, "s", s)
+        
+            if s <= max_index:
+                primitive = train_set.labels[s]
+            else:
+                print(f"Skipping index {s}: out of bounds for labels of size {len(train_set.labels)}")
+                continue
 
-            primitive = train_set.labels[s]
 
             if i % 6 == 0:
                 sequencelength = 10
@@ -176,16 +188,30 @@ if (params["train_model"] == True):
 
             rows = int(c.size()[0] / length)
 
+            total_elements = c.numel()
+            expected_shape = length * input_size
+
+            # Check if reshape is possible
+            if total_elements % expected_shape != 0:
+                # Option 1: Skip this sample gracefully
+                print(f"Skipping reshape: tensor size {total_elements} not divisible by {length} × {input_size}")
+                continue  # or break, depending on your loop logic
+            
+            # Compute rows safely
+            rows = total_elements // expected_shape
+
+            # Reshape and transpose
             startcord = c.reshape(rows, length, input_size).transpose(0, 1).cuda()
             endcord = c1.reshape(rows, length, input_size).transpose(0, 1).cuda()
+
 
 
             trainloss = 0
             testloss = 0
 
-            print("primitive", s, primitive[0].item())
+            print("primitive", s, primitive.item())
 
-            avgloss = models[primitive[0].item()].train(startcord, endcord)
+            avgloss = models[primitive.item()].train(startcord, endcord)
 
 
             print("avg loss" , avgloss)

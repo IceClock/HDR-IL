@@ -39,13 +39,20 @@ def selectColumnLabels(data):
          'left_gripper_pole_q_14',
 
 
-         'x_1',
-         'y_1',
-         'z_1',
-         'quat1_1',
-         'quat2_1',
-         'quat3_1',
-         'quat4_1',
+         'table1_x_1',
+         'table1_y_1',
+         'table1_z_1',
+         'table1_quat1_1',
+         'table1_quat2_1',
+         'table1_quat3_1',
+         'table1_quat4_1',
+         'table2_x_1',
+         'table2_y_1',
+         'table2_z_1',
+         'table2_quat1_1',
+         'table2_quat2_1',
+         'table2_quat3_1',
+         'table2_quat4_1',
     ]]
 
     labels = data[[
@@ -126,7 +133,18 @@ class BaxterDataset(Dataset):
         self.columns, self.labels= selectColumnLabels(self.coordinates)
 
         self.columns = torch.tensor(self.columns.values)
-        self.labels = torch.tensor(self.labels.values)
+
+       # Step 1: Extract the column safely
+        self.labels = self.labels['Prim']  # If self.labels is a DataFrame
+
+        # Step 2: Convert to numeric
+        self.labels = pd.to_numeric(self.labels, errors='coerce')
+
+        # Step 3: Check for NaNs (optional but recommended)
+        self.labels = self.labels.fillna(0)
+
+        # Step 4: Convert to tensor
+        self.labels = torch.tensor(self.labels.values, dtype=torch.float32)
 
 
     def __getitem__(self, index):
@@ -525,8 +543,9 @@ x = np.array([2, 0, 1, 1, 2, 4, 2, 1, 2, 0], dtype=np.float32).reshape(-1, 1)
 y = np.array([1, 1, 2, 4, 2, 1, 2, 0], dtype=np.float32).reshape(-1, 1)
 
 
-tensor_x = T.tensor(T.from_numpy(x), requires_grad=True)
-tensor_y = T.tensor(T.from_numpy(y), requires_grad=True)
+tensor_x = T.from_numpy(x).clone().detach().requires_grad_(True)
+tensor_y = T.from_numpy(y).clone().detach().requires_grad_(True)
+
 
 
 euclidean_norm = lambda x, y: T.abs(x - y)
@@ -591,8 +610,8 @@ class DTW_Loss(_Loss):
 x = np.array([2, 0, 1, 1, 2, 4, 2, 1, 2, 0], dtype=np.float32).reshape(1, -1, 1)
 y = np.array([1, 1, 2, 4, 2, 1, 2, 0], dtype=np.float32).reshape(1, -1, 1)
 
-tensor_x = T.tensor(T.from_numpy(x),requires_grad=True)
-tensor_y = T.tensor(T.from_numpy(y),requires_grad=True)
+tensor_x = T.from_numpy(x).clone().detach().requires_grad_(True)
+tensor_y = T.from_numpy(y).clone().detach().requires_grad_(True)
 loss_vals = []
 
 rhos = np.linspace(1, 10,10)

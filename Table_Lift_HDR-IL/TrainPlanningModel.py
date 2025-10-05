@@ -53,7 +53,7 @@ g2.add_nodes(nodes)
 # A couple edges one-by-one
 for i in range(0, nodes):
     for j in range(0, nodes):
-        g2.add_edge(i, j)
+        g2.add_edges(i, j)
 
 
 """The model"""
@@ -111,18 +111,25 @@ if (params["train_model"] == True):
 
 
             s = random.randint(0, params["runs"] - 1) * params["runsize"]
+            s = min(s, len(train_set.labels) - 1)
             primitive = train_set.labels[s]
+
 
 
             c, p = train_set[s:s + sequencelength]
             c1, _ = train_set[s + 1:s + 1 + sequencelength]
             i += sequencelength
+            
+            # Ensure tensors are the correct size
+            if c.numel() != sequencelength * input_size or c1.numel() != sequencelength * input_size or p.numel() != sequencelength:
+                print(f"Skipping index {s}: incompatible tensor sizes")
+                continue  # or break, depending on your loop logic
+            
+            # Reshape safely
+            startcord = c.reshape(1, sequencelength, input_size).transpose(0, 1).cuda()
+            endcord   = c1.reshape(1, sequencelength, input_size).transpose(0, 1).cuda()
+            target    = p.reshape(1, sequencelength, 1).transpose(0, 1).cuda()
 
-            rows = int(c.size()[0] / sequencelength)
-
-            startcord = c.reshape(rows, sequencelength, input_size).transpose(0, 1).cuda()
-            endcord = c1.reshape(rows, sequencelength, input_size).transpose(0, 1).cuda()
-            target = p.reshape(rows, sequencelength, 1).transpose(0, 1).cuda()
 
             trainloss = 0
             testloss = 0
