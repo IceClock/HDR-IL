@@ -2369,8 +2369,8 @@ def getLinkNames(model_id):
     _link_name_to_index = {p.getBodyInfo(model_id)[0].decode('UTF-8'):-1,}
 
     for _id in range(p.getNumJoints(model_id)):
-    	_name = p.getJointInfo(model_id, _id)[12].decode('UTF-8')
-    	_link_name_to_index[_name] = _id
+     _name = p.getJointInfo(model_id, _id)[12].decode('UTF-8')
+     _link_name_to_index[_name] = _id
 
     return _link_name_to_index
 
@@ -2638,7 +2638,20 @@ for iter in range(5000):
     p.removeBody(boxId)
     p.removeBody(blockId)
 
-df = pd.DataFrame(data)
+# Convert strings to lists if needed
+normalized_data = [row if isinstance(row, list) else [row] for row in data]
+
+# Find the max row length
+max_length = max(len(row) for row in normalized_data)
+
+# Pad each row with zeros
+padded_data = [row + [0] * (max_length - len(row)) for row in normalized_data]
+
+# Create DataFrame
+import pandas as pd
+df = pd.DataFrame(padded_data)
+
+
 
 
 df.to_csv("lift_and_place_table.csv")
