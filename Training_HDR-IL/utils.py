@@ -85,13 +85,20 @@ def outputHeaders():
          'left_gripper_pole_q_13',
          'left_gripper_pole_q_14',
 
-         'x_1',
-         'y_1',
-         'z_1',
-         'quat1_1',
-         'quat2_1',
-         'quat3_1',
-         'quat4_1',
+         'table1_x_1',
+         'table1_y_1',
+         'table1_z_1',
+         'table1_quat1_1',
+         'table1_quat2_1',
+         'table1_quat3_1',
+         'table1_quat4_1',
+         'table2_x_1',
+         'table2_y_1',
+         'table2_z_1',
+         'table2_quat1_1',
+         'table2_quat2_1',
+         'table2_quat3_1',
+         'table2_quat4_1',
 
 
     ]

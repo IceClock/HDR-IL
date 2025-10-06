@@ -269,7 +269,25 @@ class Decoder(nn.Module):
             hiddeninp = h
             # softmax = self.soft(hs)
 
-            output = torch.cat((output, hs))
+            if hs.shape[1:] != output.shape[1:]:
+                print(f"⚠️ Shape mismatch: output {output.shape}, hs {hs.shape}")
+
+                # Compute padding needed for hs
+                pad_dim1 = output.shape[1] - hs.shape[1]
+                pad_dim2 = output.shape[2] - hs.shape[2]
+
+                if pad_dim1 > 0 or pad_dim2 > 0:
+                    hs = F.pad(hs, (0, pad_dim2, 0, pad_dim1))  # pad last two dims
+
+                # Compute padding needed for output (if hs is larger)
+                pad_dim1 = hs.shape[1] - output.shape[1]
+                pad_dim2 = hs.shape[2] - output.shape[2]
+
+                if pad_dim1 > 0 or pad_dim2 > 0:
+                    output = F.pad(output, (0, pad_dim2, 0, pad_dim1))
+
+
+            output = torch.cat((output, hs), dim=0)
 
         # print(hs.size())
 
@@ -345,11 +363,16 @@ class VAE(nn.Module):
         flat = torch.zeros([1, 1, dim0*dim2]).cuda()
 
         for i in range(0, 5):
-
             output = self.generate_with_seed(seed_x, time).cuda()
-            print(output.size())
+           
+            if output.numel() < dim0 * dim2:
+                pad_size = dim0 * dim2 - output.numel()
+                output = F.pad(output.view(-1), (0, pad_size))  # pad to the right
+            elif output.numel() > dim0 * dim2:
+                output = output.view(-1)[:dim0 * dim2]  # truncate excess
 
-            output = output.view(1, 1, dim0*dim2)
+            output = output.view(1, 1, dim0 * dim2)
+
             flat = torch.cat((flat, output), 0)
 
 

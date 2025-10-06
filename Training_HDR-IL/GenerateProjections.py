@@ -14,6 +14,7 @@ import torch
 from matplotlib import pyplot as plt
 import numpy as np
 import argparse
+from torch.nn import functional as F
 
 
 
@@ -122,14 +123,63 @@ with torch.no_grad():
             mean, var = models[primitive].generate_mean_variance(a[-1].unsqueeze(1).float(), outputsize, outputsize)
             print(var)
             print(a.size(), mean.size())
-            a = torch.cat((a.float(), mean.float()), 0)
+            target_dim1 = a.shape[1]
+            target_dim2 = a.shape[2]
+            pad_dim1 = target_dim1 - mean.shape[1]
+            pad_dim2 = target_dim2 - mean.shape[2]
+            if pad_dim1 > 0 or pad_dim2 > 0:
+                mean = F.pad(mean, (0, pad_dim2, 0, pad_dim1)) 
+            a = torch.cat((a.float(), mean.float()), dim=0)
             variances = torch.cat((variances.float(), var.float()), 0)
             print("grasp")
 
 
+        # Slice and float
+        a_slice = a[0:datasize, :, :].float()
+        visited = visited.float()
 
-        visited = torch.cat((visited.float(), a[0:datasize, :, :].float()), 0)
-        truth = torch.cat((truth.float(), a1[0:datasize, :, :].float()), 0)
+        # Get target shape
+        target_dim1 = max(visited.shape[1], a_slice.shape[1])
+        target_dim2 = max(visited.shape[2], a_slice.shape[2])
+
+        # Pad visited if needed
+        pad1_v = target_dim1 - visited.shape[1]
+        pad2_v = target_dim2 - visited.shape[2]
+        if pad1_v > 0 or pad2_v > 0:
+            visited = F.pad(visited, (0, pad2_v, 0, pad1_v))
+
+        # Pad a_slice if needed
+        pad1_a = target_dim1 - a_slice.shape[1]
+        pad2_a = target_dim2 - a_slice.shape[2]
+        if pad1_a > 0 or pad2_a > 0:
+            a_slice = F.pad(a_slice, (0, pad2_a, 0, pad1_a))
+
+        # Now safe to concatenate
+        visited = torch.cat((visited, a_slice), dim=0)
+
+        # Slice and float
+        a1_slice = a1[0:datasize, :, :].float()
+        truth = truth.float()
+        
+        # Determine target dimensions
+        target_dim1 = max(truth.shape[1], a1_slice.shape[1])
+        target_dim2 = max(truth.shape[2], a1_slice.shape[2])
+        
+        # Pad truth if needed
+        pad1_t = target_dim1 - truth.shape[1]
+        pad2_t = target_dim2 - truth.shape[2]
+        if pad1_t > 0 or pad2_t > 0:
+            truth = F.pad(truth, (0, pad2_t, 0, pad1_t))
+        
+        # Pad a1_slice if needed
+        pad1_a = target_dim1 - a1_slice.shape[1]
+        pad2_a = target_dim2 - a1_slice.shape[2]
+        if pad1_a > 0 or pad2_a > 0:
+            a1_slice = F.pad(a1_slice, (0, pad2_a, 0, pad1_a))
+        
+        # Now safe to concatenate
+        truth = torch.cat((truth, a1_slice), dim=0)
+
         varianceslist = torch.cat((varianceslist.float(), variances[0:datasize, :, :].float()), 0)
 
         headers = utils.outputHeaders()
